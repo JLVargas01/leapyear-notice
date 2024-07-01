@@ -1,10 +1,13 @@
 package com.rasen.leapyearnotice
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import java.util.Calendar
+import android.Manifest
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,6 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         // Inicializa el contador
         startCountdown(textViewResult)
+
     }
 
     private fun startCountdown(textView: TextView) {
@@ -23,15 +27,15 @@ class MainActivity : AppCompatActivity() {
 
         val timer = object : CountDownTimer(nextLeapYearDate.timeInMillis - Calendar.getInstance().timeInMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                val remainingTime = millisUntilFinished
-                val seconds = remainingTime / 1000 % 60
-                val minutes = remainingTime / (60 * 1000) % 60
-                val hours = remainingTime / (60 * 60 * 1000) % 24
-                val days = remainingTime / (24 * 60 * 60 * 1000)
+                val seconds = millisUntilFinished / 1000 % 60
+                val minutes = millisUntilFinished / (60 * 1000) % 60
+                val hours = millisUntilFinished / (60 * 60 * 1000) % 24
+                val days = millisUntilFinished / (24 * 60 * 60 * 1000)
                 val years = days / 365
                 val daysRemaining = days % 365
 
-                textView.text = "Faltan $years años, $daysRemaining días, $hours horas, $minutes minutos, $seconds segundos para el próximo año bisiesto."
+                textView.text =
+                    "Faltan $years años, $daysRemaining días, $hours horas, $minutes minutos, $seconds segundos para el próximo año bisiesto."
             }
 
             override fun onFinish() {
