@@ -2,14 +2,17 @@ package com.rasen.leapyearnotice
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Build
 import android.os.CountDownTimer
-import androidx.appcompat.app.AppCompatActivity
 import android.widget.TextView
+import android.Manifest
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import java.util.Calendar
-import android.Manifest
 
 class MainActivity : AppCompatActivity() {
+
+    private var notificacion: ReminderNotification = ReminderNotification(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +22,20 @@ class MainActivity : AppCompatActivity() {
 
         // Inicializa el contador
         startCountdown(textViewResult)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    1
+                )
+            }
+        }
 
     }
 
