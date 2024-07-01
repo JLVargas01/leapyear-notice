@@ -8,46 +8,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
-class ReminderNotification : AppCompatActivity() {
+class ReminderNotification(private val context: Context) {
 
     companion object {
         const val MY_CHANNEL_ID = "myChannel"
         const val REQUEST_CODE_NOTIFICATIONS = 1
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Crear el canal de notificaciones
-        createNotificationChannel()
-
-        // Solicitar permisos si es necesario
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    REQUEST_CODE_NOTIFICATIONS
-                )
-            } else {
-                createSimpleNotification()
-            }
-        } else {
-            createSimpleNotification()
-        }
-    }
-
-    private fun createNotificationChannel() {
+    fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 MY_CHANNEL_ID,
@@ -57,50 +29,41 @@ class ReminderNotification : AppCompatActivity() {
                 description = "Canal de notificacion"
             }
             val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
 
-    private fun createSimpleNotification() {
-        val intent = Intent(this, MainActivity::class.java).apply {
+    fun createReminderNotification(tiempo: String) {
+        val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val builder = NotificationCompat.Builder(this, MY_CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, MY_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.alert_dark_frame)
-            .setContentTitle("My notification")
-            .setContentText("Much longer text that cannot fit one line...")
+            .setContentTitle("Para el proximo año bisiesto faltan...")
+            .setContentText("Texto largo $tiempo")
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Much longer text that cannot fit one line..."))
+                .bigText("Texto mas largo $tiempo"))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        with(NotificationManagerCompat.from(this)) {
+        with(NotificationManagerCompat.from(context)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ActivityCompat.checkSelfPermission(
-                        this@ReminderNotification,
-                        Manifest.permission.POST_NOTIFICATIONS
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(
+                        context as MainActivity,
+                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                        REQUEST_CODE_NOTIFICATIONS
+                    )
                     return
                 }
             }
-            notify(1, builder.build())
+            notify(REQUEST_CODE_NOTIFICATIONS, builder.build())
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_NOTIFICATIONS) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Permiso concedido, mostrar la notificación
-                createSimpleNotification()
-            }
-        }
-    }
 }
